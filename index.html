@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="DEMID DEMOCRACY — системный администратор. Linux, сети, DevOps, безопасность." />
+<title>DEMID DEMOCRACY — SysAdmin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #07090d;
+    --bg-2: #0d1117;
+    --panel: #11161f;
+    --border: #1f2937;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #00e5a0;
+    --accent-2: #22d3ee;
+    --danger: #ff5f56;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --radius: 14px;
+    --max: 1180px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(0,229,160,.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, rgba(34,211,238,.07), transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  ::selection { background: var(--accent); color: #04120c; }
+
+  #bg-canvas {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; opacity: .55;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    padding: 14px clamp(16px, 4vw, 40px);
+    background: rgba(7,9,13,.72);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(31,41,55,.6);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-weight: 800; letter-spacing: .06em; }
+  .logo-mark {
+    display: grid; place-items: center;
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #04120c; font-size: 14px; font-weight: 800;
+    box-shadow: 0 0 24px rgba(0,229,160,.35);
+  }
+  .logo-text { font-size: 15px; }
+  .logo-text em { color: var(--accent); font-style: normal; margin-left: 6px; }
+
+  .nav-list { display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; }
+  .nav-list a {
+    display: inline-block; padding: 8px 12px; border-radius: 8px;
+    font-size: 14px; color: var(--muted);
+    transition: color .2s, background .2s;
+  }
+  .nav-list a:hover, .nav-list a:focus-visible { color: var(--text); background: rgba(255,255,255,.05); }
+  .nav-cta {
+    color: #04120c !important;
+    background: var(--accent) !important;
+    font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(0,229,160,.4), 0 8px 24px -12px var(--accent);
+  }
+  .nav-cta:hover { filter: brightness(1.08); }
+
+  .burger {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: 0; padding: 8px; cursor: pointer;
+  }
+  .burger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: transform .25s, opacity .25s; }
+  .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ---------- LAYOUT ---------- */
+  main, .nav { position: relative; z-index: 2; }
+  .section { max-width: var(--max); margin: 0 auto; padding: clamp(64px, 9vw, 120px) clamp(16px, 4vw, 40px); }
+  .section-title {
+    display: flex; align-items: baseline; gap: 14px;
+    font-size: clamp(22px, 3vw, 30px); margin: 0 0 40px; letter-spacing: -.01em;
+  }
+  .section-title span {
+    font-family: var(--font-mono); font-size: 14px; color: var(--accent);
+    border: 1px solid rgba(0,229,160,.35); border-radius: 6px; padding: 2px 8px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    max-width: var(--max); margin: 0 auto;
+    padding: clamp(120px, 16vw, 180px) clamp(16px, 4vw, 40px) clamp(64px, 8vw, 100px);
+    display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(24px, 4vw, 56px);
+    align-items: center;
+  }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 13px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 18px;
+  }
+  .hero-title {
+    font-family: var(--font-mono); font-weight: 800;
+    font-size: clamp(38px, 7vw, 84px); line-height: .98;
+    margin: 0 0 22px; letter-spacing: -.03em;
+  }
+  .hero-title span { display: block; }
+  .hero-title .accent {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 30px rgba(0,229,160,.25));
+  }
+  .glitch { position: relative; }
+  .glitch::before, .glitch::after {
+    content: attr(data-text); position: absolute; inset: 0;
+    clip-path: inset(0 0 0 0); opacity: 0; pointer-events: none;
+  }
+  .glitch:hover::before { opacity: .8; color: var(--accent-2); transform: translate(2px, -1px); clip-path: inset(10% 0 60% 0); }
+  .glitch:hover::after  { opacity: .8; color: var(--danger); transform: translate(-2px, 1px); clip-path: inset(55% 0 15% 0); }
+
+  .hero-sub { color: var(--muted); font-size: clamp(15px, 1.6vw, 17px); margin: 0 0 32px; max-width: 54ch; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 36px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 13px 22px; border-radius: 10px; font-weight: 700; font-size: 15px;
+    border: 1px solid transparent; cursor: pointer;
+    transition: transform .15s, box-shadow .2s, background .2s, border-color .2s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary {
+    background: var(--accent); color: #04120c;
+    box-shadow: 0 10px 30px -12px var(--accent);
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost {
+    background: transparent; color: var(--text); border-color: var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Terminal */
+  .terminal {
+    background: #0a0e14;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.02) inset;
+  }
+  .terminal-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; background: #0d1117; border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+  .terminal-title { margin-left: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .terminal-body {
+    margin: 0; padding: 16px 18px; min-height: 230px;
+    font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7;
+    color: #c9d1d9; white-space: pre-wrap; word-break: break-word;
+  }
+  .terminal-body .ok { color: var(--accent); }
+  .terminal-body .warn { color: #ffbd2e; }
+  .terminal-body .prompt { color: var(--accent-2); }
+  .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .hero-glow {
+    position: absolute; right: -20%; top: 10%;
+    width: 60%; height: 80%;
+    background: radial-gradient(closest-side, rgba(0,229,160,.16), transparent 70%);
+    filter: blur(40px); pointer-events: none; z-index: -1;
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(24px, 4vw, 48px); }
+  .about-text p { color: var(--muted); margin: 0 0 16px; max-width: 60ch; }
+  .stats {
+    list-style: none; padding: 0; margin: 28px 0 0;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    border-top: 1px solid var(--border); padding-top: 24px;
+  }
+  .stats li { display: flex; flex-direction: column; }
+  .stats strong { font-family: var(--font-mono); font-size: clamp(22px, 3vw, 30px); color: var(--accent); }
+  .stats span { color: var(--muted); font-size: 13px; }
+
+  .about-card {
+    position: relative; background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; overflow: hidden;
+  }
+  .card-scan {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,229,160,.05) 50%, transparent 100%);
+    background-size: 100% 200%; animation: scan 6s linear infinite; pointer-events: none;
+  }
+  @keyframes scan { from { background-position: 0 -100%; } to { background-position: 0 100%; } }
+  .about-card h3 { margin: 0 0 16px; font-family: var(--font-mono); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  .profile-list { list-style: none; margin: 0; padding: 0; }
+  .profile-list li {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 11px 0; border-bottom: 1px dashed rgba(31,41,55,.9); font-size: 14px;
+  }
+  .profile-list li:last-child { border-bottom: 0; }
+  .profile-list li span:first-child { color: var(--muted); }
+  .profile-list li span:last-child { font-family: var(--font-mono); }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 32px; }
+  .skill-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+  .skill-head span:last-child { font-family: var(--font-mono); color: var(--accent); }
+  .bar { height: 7px; border-radius: 99px; background: #131a24; overflow: hidden; border: 1px solid var(--border); }
+  .bar-fill {
+    height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 16px rgba(0,229,160,.5);
+    transition: width 1.2s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* ---------- SERVICES ---------- */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card {
+    position: relative; background: linear-gradient(180deg, var(--panel), #0c1118);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 22px;
+    transition: transform .25s, border-color .25s, box-shadow .25s;
+  }
+  .card:hover {
+    transform: translateY(-4px); border-color: rgba(0,229,160,.5);
+    box-shadow: 0 24px 60px -30px rgba(0,229,160,.35);
+  }
+  .card-icon {
+    display: grid; place-items: center; width: 44px; height: 44px; border-radius: 11px;
+    background: rgba(0,229,160,.1); color: var(--accent); font-size: 22px; margin-bottom: 16px;
+    border: 1px solid rgba(0,229,160,.25);
+  }
+  .card h3 { margin: 0 0 10px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  /* ---------- CASES ---------- */
+  .cases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .case {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; display: flex; flex-direction: column; gap: 12px;
+    transition: border-color .25s, transform .25s;
+  }
+  .case:hover { border-color: rgba(34,211,238,.5); transform: translateY(-3px); }
+  .case-tag {
+    align-self: flex-start; font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent-2);
+    border: 1px solid rgba(34,211,238,.35); border-radius: 6px; padding: 3px 8px;
+  }
+  .case h3 { margin: 0; font-size: 17px; }
+  .case p { margin: 0; color: var(--muted); font-size: 14px; }
+  .case-metric { font-family: var(--font-mono); color: var(--accent); font-size: 13px; margin-top: auto; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 48px); }
+  .contact-info p { color: var(--muted); max-width: 46ch; }
+  .contact-links { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 12px; }
+  .contact-links a {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-size: 14px; color: var(--text);
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+    transition: border-color .2s, color .2s, transform .15s;
+  }
+  .contact-links a:hover { border-color: var(--accent); color: var(--accent); transform: translateX(3px); }
+
+  form { display: grid; gap: 14px; }
+  .field { display: grid; gap: 6px; }
+  .field label { font-size: 13px; color: var(--muted); }
+  .field input, .field textarea {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    background: #0a0e14; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--font-sans); font-size: 14px; resize: vertical;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .field input:focus, .field textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,.15);
+  }
+  .field.error input, .field.error textarea { border-color: var(--danger); }
+  .form-msg { font-size: 13px; font-family: var(--font-mono); min-height: 1.2em; }
+  .form-msg.ok { color: var(--accent); }
+  .form-msg.err { color: var(--danger); }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    border-top: 1px solid var(--border); margin-top: 40px;
+    padding: 28px clamp(16px, 4vw, 40px);
+    display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 13px; color: var(--muted);
+  }
+  footer .sig { color: var(--accent); }
+
+  /* ---------- REVEAL ---------- */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; padding-top: 120px; }
+    .about-grid, .contact-wrap { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .skills-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .nav-list {
+      position: fixed; top: 64px; right: 12px; left: 12px;
+      flex-direction: column; align-items: stretch; gap: 4px;
+      background: rgba(10,14,20,.98); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px;
+      transform: translateY(-12px); opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+    }
+    .nav-list.open { opacity: 1; transform: none; pointer-events: auto; }
+    .burger { display: flex; }
+    .cards, .cases { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    html { scroll-behavior: auto; }
+    .bar-fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="logo" href="#top" aria-label="DEMID DEMOCRACY — на главную">
+    <span class="logo-mark">DD</span>
+    <span class="logo-text">DEMID<em>DEMOCRACY</em></span>
+  </a>
+  <nav aria-label="Основная навигация">
+    <ul class="nav-list" id="nav-list">
+      <li><a href="#about">Обо мне</a></li>
+      <li><a href="#skills">Навыки</a></li>
+      <li><a href="#services">Услуги</a></li>
+      <li><a href="#cases">Кейсы</a></li>
+      <li><a href="#contact" class="nav-cta">Связаться</a></li>
+    </ul>
+  </nav>
+  <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav-list">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">// sysadmin · devops · security</p>
+      <h1 class="hero-title">
+        <span class="glitch" data-text="DEMID">DEMID</span>
+        <span class="glitch accent" data-text="DEMOCRACY">DEMOCRACY</span>
+      </h1>
+      <p class="hero-sub">
+        Держу инфраструктуру в строю, пока другие спят.<br />
+        Linux · сети · CI/CD · отказоустойчивость · защита.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#contact">Нанять меня</a>
+        <a class="btn btn-ghost" href="#cases">Смотреть кейсы</a>
+      </div>
+      <div class="terminal" role="region" aria-label="Демо-терминал">
+        <div class="terminal-bar">
+          <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          <span class="terminal-title">demid@democracy:~$</span>
+        </div>
+        <pre class="terminal-body" id="terminal-body"></pre>
+      </div>
+    </div>
+    <div class="hero-glow" aria-hidden="true"></div>
+  </section>
+
+  <section id="about" class="section reveal">
+    <h2 class="section-title"><span>01</span> Обо мне</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>Я — Демид, системный администратор с фокусом на Linux-инфраструктуру, автоматизацию и безопасность. Строю системы, которые не падают в пятницу вечером и переживают пиковую нагрузку без сюрпризов.</p>
+        <p>Работаю с bare-metal и облаком: от настройки ядра и сети до CI/CD и мониторинга. Люблю, когда алерты молчат, а дашборды зелёные.</p>
+        <ul class="stats">
+          <li><strong data-count="8" data-suffix="">0</strong><span>лет в профессии</span></li>
+          <li><strong data-count="120" data-suffix="+">0</strong><span>проектов</span></li>
+          <li><strong data-count="99.98" data-suffix="%" data-decimals="2">0</strong><span>uptime</span></li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <div class="card-scan"></div>
+        <h3>Профиль</h3>
+        <ul class="profile-list">
+          <li><span>Локация</span><span>Remote / EU</span></li>
+          <li><span>Опыт</span><span>8+ лет</span></li>
+          <li><span>Стек</span><span>Linux, Docker, K8s</span></li>
+          <li><span>Формат</span><span>Full-time / Contract</span></li>
+          <li><span>Языки</span><span>RU, EN</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="section reveal">
+    <h2 class="section-title"><span>02</span> Навыки</h2>
+    <div class="skills-grid">
+      <div class="skill"><div class="skill-head"><span>Linux / UNIX</span><span>95%</span></div><div class="bar"><div class="bar-fill" data-level="95"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>Сети / TCP/IP</span><span>92%</span></div><div class="bar"><div class="bar-fill" data-level="92"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>Docker / Kubernetes</span><span>88%</span></div><div class="bar"><div class="bar-fill" data-level="88"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>CI/CD (GitLab, GitHub)</span><span>90%</span></div><div class="bar"><div class="bar-fill" data-level="90"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>Мониторинг (Prometheus, Grafana)</span><span>85%</span></div><div class="bar"><div class="bar-fill" data-level="85"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>Безопасность / Hardening</span><span>87%</span></div><div class="bar"><div class="bar-fill" data-level="87"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>Bash / Python / Ansible</span><span>93%</span></div><div class="bar"><div class="bar-fill" data-level="93"></div></div></div>
+      <div class="skill"><div class="skill-head"><span>Базы данных (PG, MySQL)</span><span>80%</span></div><div class="bar"><div class="bar-fill" data-level="80"></div></div></div>
+    </div>
+  </section>
+
+  <section id="services" class="section reveal">
+    <h2 class="section-title"><span>03</span> Услуги</h2>
+    <div class="cards">
+      <article class="card">
+        <div class="card-icon">⚙</div>
+        <h3>Настройка серверов</h3>
+        <p>Linux с нуля: разметка, ядро, безопасность, бэкапы, мониторинг. Быстро и без лишнего.</p>
+      </article>
+      <article class="card">
+        <div class="card-icon">🛡</div>
+        <h3>Безопасность</h3>
+        <p>Hardening, аудит, firewall, fail2ban, VPN, PKI. Закрываю то, что обычно забывают.</p>
+      </article>
+      <article class="card">
+        <div class="card-icon">🔁</div>
+        <h3>CI/CD и автоматизация</h3>
+        <p>Пайплайны, Ansible, IaC, деплой без ручных шагов и «а у нас так исторически сложилось».</p>
+      </article>
+      <article class="card">
+        <div class="card-icon">📈</div>
+        <h3>Мониторинг</h3>
+        <p>Prometheus, Grafana, алерты, SLO. Узнаёшь о проблеме раньше пользователей.</p>
+      </article>
+      <article class="card">
+        <div class="card-icon">☁</div>
+        <h3>Контейнеры и K8s</h3>
+        <p>Docker, оркестрация, Helm, деплой в облако и on-prem. От dev до prod.</p>
+      </article>
+      <article class="card">
+        <div class="card-icon">🚑</div>
+        <h3>Аварийное восстановление</h3>
+        <p>Разбор инцидентов, восстановление после сбоев, план DR и тесты бэкапов.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="cases" class="section reveal">
+    <h2 class="section-title"><span>04</span> Кейсы</h2>
+    <div class="cases">
+      <article class="case">
+        <span class="case-tag">infrastructure</span>
+        <h3>Миграция 40 сервисов в Kubernetes</h3>
+        <p>Перенёс legacy-стек на K8s с нулевым даунтаймом, ввёл Helm и GitOps.</p>
+        <span class="case-metric">// uptime 99.99% · −35% затрат на железо</span>
+      </article>
+      <article class="case">
+        <span class="case-tag">security</span>
+        <h3>Аудит и hardening периметра</h3>
+        <p>Закрыл 60+ уязвимостей, внедрил PKI и сегментацию сети.</p>
+        <span class="case-metric">// 0 инцидентов за 12 месяцев</span>
+      </article>
+      <article class="case">
+        <span class="case-tag">devops</span>
+        <h3>CI/CD с нуля за две недели</h3>
+        <p>GitLab CI, автотесты, деплой в staging/prod по кнопке.</p>
+        <span class="case-metric">// релизы: с 1/мес до 8/день</span>
+      </article>
+      <article class="case">
+        <span class="case-tag">monitoring</span>
+        <h3>Наблюдаемость для highload</h3>
+        <p>Prometheus + Grafana + Alertmanager, SLO и runbook'и.</p>
+        <span class="case-metric">// MTTR: 45 → 7 минут</span>
+      </article>
+    </div>
+  </section>
+
+  <section id="contact" class="section reveal">
+    <h2 class="section-title"><span>05</span> Связаться</h2>
+    <div class="contact-wrap">
+      <div class="contact-info">
+        <p>Нужен админ, который реально чинит, а не «перезагрузите роутер»? Напиши — обсудим задачу и сроки.</p>
+        <ul class="contact-links">
+          <li><a href="mailto:hello@demid.democracy">✉ hello@demid.democracy</a></li>
+          <li><a href="https://t.me/" target="_blank" rel="noopener">✈ Telegram: @demid_democracy</a></li>
+          <li><a href="https://github.com/" target="_blank" rel="noopener">⌥ GitHub: /demid-democracy</a></li>
+        </ul>
+      </div>
+      <form id="contact-form" novalidate>
+        <div class="field">
+          <label for="name">Имя</label>
+          <input id="name" name="name" type="text" autocomplete="name" required minlength="2" />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="message">Сообщение</label>
+          <textarea id="message" name="message" rows="4" required minlength="10"></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Отправить</button>
+        <div class="form-msg"
